@@ -1,4 +1,5 @@
 const mysql = require('mysql2/promise');
+const TelegramBot = require('node-telegram-bot-api');
 
 export default async function handler(req, res) {
     const { id } = req.query;
@@ -9,6 +10,7 @@ export default async function handler(req, res) {
     }
 
     try {
+        // Database connection
         const connection = await mysql.createConnection({
             host: process.env.DB_HOST,
             user: process.env.DB_USER,
@@ -24,11 +26,15 @@ export default async function handler(req, res) {
 
         await connection.end();
 
-        // Redirect back to your bot (Replace BOT_USERNAME with your actual bot username)
-        const botUsername = 'YOUR_BOT_USERNAME'; 
+        // Send "Thank you" message via Telegram
+        const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
+        await bot.sendMessage(id, '✅ Thank you for verifying! Your account is now active.');
+
+        // Redirect back to your bot
+        const botUsername = 'YOUR_BOT_USERNAME'; // Update this to your bot handle
         return res.redirect(`https://t.me/${botUsername}`);
     } catch (error) {
-        console.error('Error updating IP:', error);
+        console.error('Error in IP collection/verification:', error);
         return res.status(500).send('Internal Server Error');
     }
 }
