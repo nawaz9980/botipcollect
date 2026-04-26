@@ -1,4 +1,4 @@
-const mysql = require('mysql2/promise');
+const mysql = require('mysql2');
 const TelegramBot = require('node-telegram-bot-api');
 
 module.exports = async (req, res) => {
@@ -24,7 +24,7 @@ module.exports = async (req, res) => {
             user: process.env.DB_USER,
             password: process.env.DB_PASS,
             database: process.env.DB_NAME
-        });
+        }).promise();
 
         // Update the user's IP in the database
         await connection.execute(
