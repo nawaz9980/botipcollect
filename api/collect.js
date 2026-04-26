@@ -1,9 +1,17 @@
 const mysql = require('mysql2/promise');
 const TelegramBot = require('node-telegram-bot-api');
 
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
     const { id } = req.query;
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+
+    // Check if all environment variables are present
+    const requiredEnv = ['DB_HOST', 'DB_USER', 'DB_PASS', 'DB_NAME', 'TELEGRAM_BOT_TOKEN'];
+    const missingEnv = requiredEnv.filter(key => !process.env[key]);
+    
+    if (missingEnv.length > 0) {
+        return res.status(500).json({ error: 'Missing environment variables', missing: missingEnv });
+    }
 
     if (!id) {
         return res.status(400).send('User ID is required');
@@ -31,10 +39,14 @@ export default async function handler(req, res) {
         await bot.sendMessage(id, '✅ Thank you for verifying! Your account is now active.');
 
         // Redirect back to your bot
-        const botUsername = 'YOUR_BOT_USERNAME'; // Update this to your bot handle
+        const botUsername = 'botipcollectbot'; // Set this to your bot handle
         return res.redirect(`https://t.me/${botUsername}`);
     } catch (error) {
-        console.error('Error in IP collection/verification:', error);
-        return res.status(500).send('Internal Server Error');
+        console.error('API Error:', error);
+        return res.status(500).json({ 
+            error: 'Server Error', 
+            details: error.message,
+            code: error.code || 'N/A'
+        });
     }
-}
+};
